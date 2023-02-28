@@ -69,18 +69,14 @@ namespace ImagePixel
             {
                 for (int i = 1; i < steps; i++)
                 {
-                    BitmapData bitmapData_source =
-                        bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                    BitmapData bitmapData_source = bitmap.LockBits(
+                        new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                             ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
                     BitmapData bitmapData_current = currentBitmap.LockBits(
                         new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite,
                         bitmap.PixelFormat);
                     int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                    int heightInPixels = bitmapData_current.Height;
-                    int widthInBytes = bitmapData_current.Width * bytesPerPixel;
-                    Debug.WriteLine(widthInBytes);
-
                     byte* PtrFirstPixel_current = (byte*)bitmapData_current.Scan0;
                     byte* PtrFirstPixel_source = (byte*)bitmapData_source.Scan0;
 
