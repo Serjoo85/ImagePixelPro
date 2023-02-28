@@ -39,7 +39,7 @@ namespace ImagePixel
                 await Task.Run(() => { RunProcessing(new Bitmap(openFileDialog1.FileName), steps); });
                 //(menuStrip1.Enabled, ) = (true, true);
                 menuStrip1.Enabled = true;
-trackBar1.Enabled = true;
+                trackBar1.Enabled = true;
                 sw.Stop();
                 Text = $"Прошедшее время: {sw.Elapsed.ToString().Remove(8)}";
             }
@@ -68,71 +68,44 @@ trackBar1.Enabled = true;
 
             int width = bitmap.Width;
            
-            for (int i = 1; i < steps; i++)
-            {
-                unsafe
+            unsafe {
+                for (int i = 1; i < steps; i++)
                 {
-                    BitmapData bitmapData = currentBitmap.LockBits(new Rectangle(0, 0, currentBitmap.Width, currentBitmap.Height), ImageLockMode.ReadWrite, currentBitmap.PixelFormat);
+
+                    BitmapData bitmapData_source = bitmap.LockBits(new Rectangle(0, 0, currentBitmap.Width, currentBitmap.Height), ImageLockMode.ReadWrite, currentBitmap.PixelFormat);
+
+                    BitmapData bitmapData_current = currentBitmap.LockBits(new Rectangle(0, 0, currentBitmap.Width, currentBitmap.Height), ImageLockMode.ReadWrite, currentBitmap.PixelFormat);
                     int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat)/8;
-                    int heightInPixels = bitmapData.Height;
-                    int widthInBytes = bitmapData.Width * bytesPerPixel;
-                    Debug.WriteLine(bytesPerPixel);
+                    int heightInPixels = bitmapData_current.Height;
+                    int widthInBytes = bitmapData_current.Width * bytesPerPixel;
 
-                    byte* PtrFirstPixel = (byte*)bitmapData.Scan0;
-
+                    byte* PtrFirstPixel_current = (byte*)bitmapData_current.Scan0;
+                    byte* PtrFirstPixel_source = (byte*)bitmapData_source.Scan0;
                     
 
-                    Parallel.For(0, heightInPixels, y =>
+                    for (int j = 0; j < pixelsInStep; j++)
                     {
-                        //byte* currentLIne = PtrFirstPixel + (y * bitmapData.Stride);
-
-                        byte[] b = new byte[bytesPerPixel];
-
-                        for (int j = 0; j < pixelsInStep; j++)
-                        {
-                            int idx = indexes[i* pixelsInStep + j];
-                            int x1 = idx % width;
-                            int y1 = idx / width;
-                            
-                            byte* currentLIne = PtrFirstPixel + (y1 * bitmapData.Stride);
-                            
-                            b[0] = currentLIne[x1 * bytesPerPixel];
-                            b[1] = currentLIne[x1 * bytesPerPixel + 1];
-                            b[2] = currentLIne[x1 * bytesPerPixel + 2];
-
-                            //currentBitmap.SetPixel(x, y, bitmap.GetPixel(x, y));
-                        }
-
-                        //for(int x = 0; x < widthInBytes; x = x + bytesPerPixel)
-                        //{
-                        //
-                        //}
-
-                        //for (int j = 0; j < pixelsInStep; j++)
-                        //{
-                        //    int idx = indexes[i* pixelsInStep + j];
-                        //    int x = idx % bitmap.Width;
-                        //    int y = idx / bitmap.Width;
-                        //
-                        //    currentBitmap.SetPixel(x, y, bitmap.GetPixel(x, y));                
-                        //}
-                        //
-                        //
-                        //_bitmaps.Add((Bitmap)currentBitmap.Clone());
-                        //
-                        //this.Invoke(new Action(() => { Text = $"{i} %"; }));
-                        //this.Invoke(new Action(() => { 
-                        //    pictureBox1.Image = _bitmaps[trackBar1.Value++];     
-                        //}));                    
-                    });
-
-                    bitmap.UnlockBits(bitmapData);
+                        int idx = indexes[i * pixelsInStep + j];
+                        int x1 = idx % width;
+                        int y1 = idx / width;
+                        
+                        byte* currentLIne_current = PtrFirstPixel_current + (y1 * bitmapData_current.Stride);
+                        byte* currentLIne_source = PtrFirstPixel_source + (y1 * bitmapData_source.Stride);
+                        
+                        currentLIne_current[x1 * bytesPerPixel] = currentLIne_source[x1 * bytesPerPixel];
+                        currentLIne_current[x1 * bytesPerPixel + 1] = currentLIne_source[x1 * bytesPerPixel + 1];
+                        currentLIne_current[x1 * bytesPerPixel + 2] = currentLIne_source[x1 * bytesPerPixel + 2];
+                    }
+                        
+                    currentBitmap.UnlockBits(bitmapData_current);
+                    bitmap.UnlockBits(bitmapData_source);
+                    _bitmaps.Add((Bitmap)currentBitmap.Clone());
+                    this.Invoke(new Action(() => { Text = $"{i} %"; }));
+                    this.Invoke(new Action(() => { pictureBox1.Image = _bitmaps[trackBar1.Value++]; }));
                 }
-
-                _bitmaps.Add(bitmap);
-                this.Invoke(new Action(() => { pictureBox1.Image = _bitmaps[trackBar1.Value++]; }));
             }
-            
+            _bitmaps.Add(bitmap);
+            this.Invoke(new Action(() => { pictureBox1.Image = _bitmaps[trackBar1.Value++]; }));
         }
         
 
