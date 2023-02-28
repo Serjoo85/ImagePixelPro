@@ -52,12 +52,11 @@ namespace ImagePixel
             int[] indexes = new int[cnt];
             for (int i = 0; i < cnt; i++)
                 indexes[i] = i;
+
             for (int i = 0; i < cnt - 1; i++)
             {
                 int idx = rnd.Next(i + 1, cnt - 1);
-                int t = indexes[idx];
-                indexes[idx] = indexes[i];
-                indexes[i] = t;
+                (indexes[idx], indexes[i]) = (indexes[i], indexes[idx]);
             }
 
             int pixelsInStep = cnt / steps;
@@ -75,17 +74,18 @@ namespace ImagePixel
                             ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
                     BitmapData bitmapData_current = currentBitmap.LockBits(
-                        new Rectangle(0, 0, currentBitmap.Width, currentBitmap.Height), ImageLockMode.ReadWrite,
-                        currentBitmap.PixelFormat);
+                        new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite,
+                        bitmap.PixelFormat);
                     int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
                     int heightInPixels = bitmapData_current.Height;
                     int widthInBytes = bitmapData_current.Width * bytesPerPixel;
+                    Debug.WriteLine(widthInBytes);
 
                     byte* PtrFirstPixel_current = (byte*)bitmapData_current.Scan0;
                     byte* PtrFirstPixel_source = (byte*)bitmapData_source.Scan0;
 
 
-                    Parallel.For(0, pixelsInStep - 1, new ParallelOptions() { MaxDegreeOfParallelism = 5 }, (j) =>
+                    Parallel.For(0, pixelsInStep, (j) =>
                     {
                         int idx = indexes[i * pixelsInStep + j];
                         int x1 = idx % width;
