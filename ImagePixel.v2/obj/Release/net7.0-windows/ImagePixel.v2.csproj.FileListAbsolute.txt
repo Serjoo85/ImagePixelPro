@@ -1,0 +1,17 @@
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\bin\Release\net7.0-windows\ImagePixel.v2.exe
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\bin\Release\net7.0-windows\ImagePixel.v2.deps.json
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\bin\Release\net7.0-windows\ImagePixel.v2.runtimeconfig.json
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\bin\Release\net7.0-windows\ImagePixel.v2.dll
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\bin\Release\net7.0-windows\ImagePixel.v2.pdb
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.csproj.AssemblyReference.cache
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.Form1.resources
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.csproj.GenerateResource.cache
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.AssemblyInfoInputs.cache
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.AssemblyInfo.cs
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.csproj.CoreCompileInputs.cache
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.dll
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\refint\ImagePixel.v2.dll
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.pdb
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ImagePixel.v2.genruntimeconfig.cache
+C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Release\net7.0-windows\ref\ImagePixel.v2.dll
