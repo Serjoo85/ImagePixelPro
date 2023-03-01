@@ -78,12 +78,10 @@ namespace ImagePixel
 
             Task task = new Task(() => {                
 
-                unsafe
-                {
-                    
+
 
                     while (!_src.IsCancellationRequested)
-                    {                        
+                    {
                         if(indxTask.Count > 0)
                         {
                             lock (this)
@@ -107,24 +105,34 @@ namespace ImagePixel
                                     }
 
                                     _images.LockWorking();
-
-                                    int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                                    byte* PtrFirstPixel_current = (byte*)_images.WorkingBitmapData.Scan0;
-                                    byte* PtrFirstPixel_source = (byte*)_images.SourceBitmapData.Scan0;
-
-                                    Parallel.For(0, pixelsInStep, (j) =>
+                                    unsafe
                                     {
-                                        int idx = indexes[i * pixelsInStep + j];
-                                        int x1 = idx % width;
-                                        int y1 = idx / width;
 
-                                        byte* currentLIne_current = PtrFirstPixel_current + (y1 * _images.WorkingBitmapData.Stride);
-                                        byte* currentLIne_source = PtrFirstPixel_source + (y1 * _images.SourceBitmapData.Stride);
 
-                                        currentLIne_current[x1 * bytesPerPixel] = currentLIne_source[x1 * bytesPerPixel];
-                                        currentLIne_current[x1 * bytesPerPixel + 1] = currentLIne_source[x1 * bytesPerPixel + 1];
-                                        currentLIne_current[x1 * bytesPerPixel + 2] = currentLIne_source[x1 * bytesPerPixel + 2];
-                                    });
+                                        int bytesPerPixel =
+                                            System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+                                        byte* PtrFirstPixel_current = (byte*)_images.WorkingBitmapData.Scan0;
+                                        byte* PtrFirstPixel_source = (byte*)_images.SourceBitmapData.Scan0;
+
+                                        Parallel.For(0, pixelsInStep, (j) =>
+                                        {
+                                            int idx = indexes[i * pixelsInStep + j];
+                                            int x1 = idx % width;
+                                            int y1 = idx / width;
+
+                                            byte* currentLIne_current = PtrFirstPixel_current +
+                                                                        (y1 * _images.WorkingBitmapData.Stride);
+                                            byte* currentLIne_source = PtrFirstPixel_source +
+                                                                       (y1 * _images.SourceBitmapData.Stride);
+
+                                            currentLIne_current[x1 * bytesPerPixel] =
+                                                currentLIne_source[x1 * bytesPerPixel];
+                                            currentLIne_current[x1 * bytesPerPixel + 1] =
+                                                currentLIne_source[x1 * bytesPerPixel + 1];
+                                            currentLIne_current[x1 * bytesPerPixel + 2] =
+                                                currentLIne_source[x1 * bytesPerPixel + 2];
+                                        });
+                                    }
 
                                     _images.ChangeCurrent();
                                     Interlocked.Increment(ref _currentPointIndex);
@@ -135,22 +143,27 @@ namespace ImagePixel
                                 for (int i = _currentPointIndex - 1; i >= _endPointIndex; i--)
                                 {
                                     _images.LockWorking();
-
+                                    
                                     int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                                    byte* PtrFirstPixel_current = (byte*)_images.WorkingBitmapData.Scan0;
 
-                                    Parallel.For(0, pixelsInStep, (j) =>
+                                    unsafe
                                     {
-                                        int idx = indexes[i * pixelsInStep + j];
-                                        int x1 = idx % width;
-                                        int y1 = idx / width;
+                                        byte* PtrFirstPixel_current = (byte*)_images.WorkingBitmapData.Scan0;
 
-                                        byte* currentLIne_current = PtrFirstPixel_current + (y1 * _images.WorkingBitmapData.Stride);
+                                        Parallel.For(0, pixelsInStep, (j) =>
+                                        {
+                                            int idx = indexes[i * pixelsInStep + j];
+                                            int x1 = idx % width;
+                                            int y1 = idx / width;
 
-                                        currentLIne_current[x1 * bytesPerPixel] = 0;
-                                        currentLIne_current[x1 * bytesPerPixel + 1] = 0; 
-                                        currentLIne_current[x1 * bytesPerPixel + 2] = 0;
-                                    });
+                                            byte* currentLIne_current = PtrFirstPixel_current +
+                                                                        (y1 * _images.WorkingBitmapData.Stride);
+
+                                            currentLIne_current[x1 * bytesPerPixel] = 0;
+                                            currentLIne_current[x1 * bytesPerPixel + 1] = 0;
+                                            currentLIne_current[x1 * bytesPerPixel + 2] = 0;
+                                        });
+                                    }
 
                                     _images.ChangeCurrent();
                                     Interlocked.Decrement(ref _currentPointIndex);
@@ -160,7 +173,6 @@ namespace ImagePixel
                         }                        
                     }
 
-                }
             }, _src.Token);
             task.Start();
             // TODO UnlockSource
@@ -200,15 +212,9 @@ namespace ImagePixel
 
         private void Form1_FormClosing(Object sender, FormClosingEventArgs e)
         {
-            // Display a MsgBox asking the user to save changes or abort.
-            if(MessageBox.Show("Do you want to save changes to your text?", "My Application",
-                   MessageBoxButtons.YesNo) ==  DialogResult.Yes)
-            {
-                _src?.Cancel();
-                _images.Reset();
-                e.Cancel = true;
-                
-            }
+            _src?.Cancel();
+            _images.Reset();
+            e.Cancel = true;
         }
     }
 }
