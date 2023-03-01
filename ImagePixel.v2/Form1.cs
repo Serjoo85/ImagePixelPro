@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
+﻿using System.Diagnostics;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
 namespace ImagePixel
 {
     public partial class Form1 : Form
@@ -19,6 +11,7 @@ namespace ImagePixel
             InitializeComponent();
             trackBar1.Enabled = false;
         }
+
         private void UpdateForm()
         {
             pictureBox1.Image = null;
@@ -38,7 +31,6 @@ namespace ImagePixel
                 UpdateForm();
                 int steps = trackBar1.Maximum;
                 await Task.Run(() => { RunProcessing(new Bitmap(openFileDialog1.FileName), steps); }).ConfigureAwait(true);
-                //(menuStrip1.Enabled, ) = (true, true);
                 menuStrip1.Enabled = true;
                 trackBar1.Enabled = true;
                 sw.Stop();
