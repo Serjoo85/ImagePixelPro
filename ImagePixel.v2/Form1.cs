@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Drawing.Imaging;
+using ImagePixel.v2;
+
 namespace ImagePixel
 {
     public partial class Form1 : Form
@@ -42,17 +44,20 @@ namespace ImagePixel
 
         private CancellationTokenSource _src;
 
-        private Bitmap _workingBitmap;
-        private Bitmap _currentBitmap;
-        private Bitmap _sourceBitmap;
-        private Bitmap _previewBitmap;
+        private BitmapImagesKeeper _images;
+        private int _currentPointIndex;
+        private int _endPointIndex;
 
         private Task RunProcessing(Bitmap bitmap, int steps)
         {
-            _sourceBitmap = bitmap;            
+            _currentPointIndex = 0;
+            _endPointIndex = 0;
+            _images = new BitmapImagesKeeper(bitmap, this.Invoke, this.pictureBox1);
+           
             _src?.Cancel();
             _src?.Dispose();
             _src = new CancellationTokenSource();
+            
             int cnt = bitmap.Height * bitmap.Width;
 
             int[] indexes = new int[cnt];
@@ -65,50 +70,46 @@ namespace ImagePixel
                 (indexes[idx], indexes[i]) = (indexes[i], indexes[idx]);
             }
 
-            int pixelsInStep = cnt / steps; 
-
-            _workingBitmap = new Bitmap(bitmap.Width, bitmap.Height);
+            int pixelsInStep = cnt / steps;
+            int width = bitmap.Width;
+            int previewIndex = 0;
+            _images.LockSource();
 
             Task task = new Task(() => {                
-                int width = bitmap.Width;
-                int previewIndex = 0;
-                int currentIndex = 0;
+
                 unsafe
                 {
-                    BitmapData bitmapData_source = bitmap.LockBits(
-                            new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                            ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
+                    
 
                     while (!_src.IsCancellationRequested)
                     {                        
                         if(indxTask.Count > 0)
                         {
-                            previewIndex = currentIndex;
-                            currentIndex = indxTask.Dequeue();
-
-                            if(currentIndex == 100)
+                            lock (this)
                             {
-                                _previewBitmap = _currentBitmap;
-                                _workingBitmap = (Bitmap)_sourceBitmap.Clone();
-                                _currentBitmap = (Bitmap)_workingBitmap.Clone();
-                                this.Invoke(new Action(() => { pictureBox1.Image = (Bitmap)_currentBitmap; }));
-                                _previewBitmap?.Dispose();
-                                continue;
+                                var enumerable = indxTask.Distinct();
+                                if (Tendentious)
+                                    _endPointIndex = enumerable.Max();
+                                else
+                                    _endPointIndex = enumerable.Min();
+                                indxTask.Clear();
                             }
 
-                            if(currentIndex >= previewIndex)
+                            if( _endPointIndex >= _currentPointIndex)
                             {
-                                for (int i = previewIndex + 1; i <= currentIndex; i++ )
+                                for (int i = _currentPointIndex + 1; i <= _endPointIndex; i++ )
                                 {
-                                    Debug.WriteLine(i);
-                                    BitmapData bitmapData_current = _workingBitmap.LockBits(
-                                     new Rectangle(0, 0, bitmap.Width, bitmap.Height), 
-                                    ImageLockMode.ReadWrite,bitmap.PixelFormat);
+                                    if(i >= 100)
+                                    {
+                                        _images.ChangeCurrent100();
+                                        continue;
+                                    }
+
+                                    _images.LockWorking();
 
                                     int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                                    byte* PtrFirstPixel_current = (byte*)bitmapData_current.Scan0;
-                                    byte* PtrFirstPixel_source = (byte*)bitmapData_source.Scan0;
+                                    byte* PtrFirstPixel_current = (byte*)_images.WorkingBitmapData.Scan0;
+                                    byte* PtrFirstPixel_source = (byte*)_images.SourceBitmapData.Scan0;
 
                                     Parallel.For(0, pixelsInStep, (j) =>
                                     {
@@ -116,33 +117,26 @@ namespace ImagePixel
                                         int x1 = idx % width;
                                         int y1 = idx / width;
 
-                                        byte* currentLIne_current = PtrFirstPixel_current + (y1 * bitmapData_current.Stride);
-                                        byte* currentLIne_source = PtrFirstPixel_source + (y1 * bitmapData_source.Stride);
+                                        byte* currentLIne_current = PtrFirstPixel_current + (y1 * _images.WorkingBitmapData.Stride);
+                                        byte* currentLIne_source = PtrFirstPixel_source + (y1 * _images.SourceBitmapData.Stride);
 
                                         currentLIne_current[x1 * bytesPerPixel] = currentLIne_source[x1 * bytesPerPixel];
                                         currentLIne_current[x1 * bytesPerPixel + 1] = currentLIne_source[x1 * bytesPerPixel + 1];
                                         currentLIne_current[x1 * bytesPerPixel + 2] = currentLIne_source[x1 * bytesPerPixel + 2];
                                     });
 
-                                    _workingBitmap.UnlockBits(bitmapData_current);
-
-                                    _previewBitmap = _currentBitmap;
-                                    _currentBitmap = (Bitmap)_workingBitmap.Clone();
-                                    this.Invoke(new Action(() => { pictureBox1.Image = _currentBitmap; }));
-                                    _previewBitmap?.Dispose();
+                                    _images.ChangeCurrent();
+                                    Interlocked.Increment(ref _currentPointIndex);
                                 }                                
                             }
                             else
                             {
-                                for (int i = previewIndex - 1; i >= currentIndex; i--)
+                                for (int i = _currentPointIndex - 1; i >= _endPointIndex; i--)
                                 {
-                                    Debug.WriteLine(i);
-                                    BitmapData bitmapData_current = _workingBitmap.LockBits(
-                                    new Rectangle(0, 0, bitmap.Width, bitmap.Height), 
-                                    ImageLockMode.ReadWrite,bitmap.PixelFormat);
+                                    _images.LockWorking();
 
                                     int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                                    byte* PtrFirstPixel_current = (byte*)bitmapData_current.Scan0;
+                                    byte* PtrFirstPixel_current = (byte*)_images.WorkingBitmapData.Scan0;
 
                                     Parallel.For(0, pixelsInStep, (j) =>
                                     {
@@ -150,29 +144,25 @@ namespace ImagePixel
                                         int x1 = idx % width;
                                         int y1 = idx / width;
 
-                                        byte* currentLIne_current = PtrFirstPixel_current + (y1 * bitmapData_current.Stride);
+                                        byte* currentLIne_current = PtrFirstPixel_current + (y1 * _images.WorkingBitmapData.Stride);
 
                                         currentLIne_current[x1 * bytesPerPixel] = 0;
                                         currentLIne_current[x1 * bytesPerPixel + 1] = 0; 
                                         currentLIne_current[x1 * bytesPerPixel + 2] = 0;
                                     });
 
-                                    _workingBitmap.UnlockBits(bitmapData_current);
-
-                                    _previewBitmap = _currentBitmap;
-                                    _currentBitmap = (Bitmap)_workingBitmap.Clone();
-                                    this.Invoke(new Action(() => { pictureBox1.Image = _currentBitmap; }));
-                                    _previewBitmap?.Dispose();
+                                    _images.ChangeCurrent();
+                                    Interlocked.Decrement(ref _currentPointIndex);
                                 }                                
                             }                           
                                                
                         }                        
                     }
-                    bitmap.UnlockBits(bitmapData_source);
+
                 }
             }, _src.Token);
             task.Start();
-
+            // TODO UnlockSource
             Task trashDestroyer = new Task(async () =>
             {
                 while (true) 
@@ -183,16 +173,20 @@ namespace ImagePixel
                 }
             }, _src.Token);
 
-            //trashDestroyer.Start();
+
             return task;
         }
 
+        private int previewTrackBarValue;
+        private int currentTrackBarValue;
+        private bool Tendentious => currentTrackBarValue > previewTrackBarValue;
         private void trackBar1_Scroll(object sender, EventArgs e)
-        {            
-            this.Invoke(new Action(() => { Text = $"{trackBar1.Value} %"; }));
-            indxTask.Enqueue(trackBar1.Value);
+        {
+            previewTrackBarValue = currentTrackBarValue;
+            currentTrackBarValue = trackBar1.Value;
+            this.Invoke(new Action(() => { Text = $"{currentTrackBarValue} %"; }));
+            indxTask.Enqueue(currentTrackBarValue);
         }
-                
 
         private void deleteImageToolStripMenuItem_Click(object sender, EventArgs e)
         {

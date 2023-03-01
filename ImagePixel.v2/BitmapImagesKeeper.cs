@@ -10,37 +10,49 @@ namespace ImagePixel.v2
         public Bitmap _sourceBitmap {get;set;}
         public Bitmap _previewBitmap { get;set;}
 
-        private BitmapData _workingBitmapData;
-        private BitmapData _sourceBitmapData;
+        public Bitmap _emptyBitmap { get; set; }
+
+        public BitmapData WorkingBitmapData => _workingBitmapData;
+        public BitmapData SourceBitmapData => _sourceBitmapData;
 
         private Action<Action> _sendImageToForm;
 
         private PictureBox _pictureBox;
+        private BitmapData _sourceBitmapData;
+        private BitmapData _workingBitmapData;
 
         public BitmapImagesKeeper(Bitmap sourceBitmap, Action<Action> sendImageToForm, System.Windows.Forms.PictureBox pictureBox)
         {
             _sourceBitmap = sourceBitmap;
             _workingBitmap = new Bitmap(sourceBitmap.Width, sourceBitmap.Height);
+            _emptyBitmap = new Bitmap(sourceBitmap.Width, sourceBitmap.Height);
             _sendImageToForm = sendImageToForm;
             _pictureBox = pictureBox;
         }
 
-        public void ChangeCurrent(Bitmap modifiedImage)
+        public void ChangeCurrent()
         {
-            _workingBitmap.UnlockBits(_workingBitmapData);
             _previewBitmap = _currentBitmap;
-            _currentBitmap = modifiedImage;
+            _currentBitmap = (Bitmap)_workingBitmap.Clone();
+            _workingBitmap.UnlockBits(WorkingBitmapData);
             _sendImageToForm.Invoke(() => { _pictureBox.Image = _currentBitmap; });
             _previewBitmap?.Dispose();
         }
 
-        public void ChangeCurrent100(Bitmap modifiedImage)
+        public void ChangeCurrent100()
         {
-            _workingBitmap.UnlockBits(_workingBitmapData);
             _previewBitmap = _currentBitmap;
             _workingBitmap = (Bitmap)_sourceBitmap.Clone();
             _currentBitmap = (Bitmap)_workingBitmap.Clone();
-            UnLockWorking();
+            _sendImageToForm.Invoke(new Action(() => { _pictureBox.Image = (Bitmap)_currentBitmap; }));
+            _previewBitmap?.Dispose();
+        }
+
+        public void ChangeCurrent0()
+        {
+            _previewBitmap = _currentBitmap;
+            _workingBitmap = (Bitmap)_emptyBitmap.Clone();
+            _currentBitmap = (Bitmap)_workingBitmap.Clone();
             _sendImageToForm.Invoke(new Action(() => { _pictureBox.Image = (Bitmap)_currentBitmap; }));
             _previewBitmap?.Dispose();
         }
