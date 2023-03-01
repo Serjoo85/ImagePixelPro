@@ -12,6 +12,7 @@ namespace ImagePixel
         {
             InitializeComponent();
             trackBar1.Enabled = false;
+            this.FormClosing+=new FormClosingEventHandler(Form1_FormClosing);
         }
 
         private void UpdateForm()
@@ -194,6 +195,19 @@ namespace ImagePixel
             {
                 _src?.Cancel();
                 UpdateForm();
+            }
+        }
+
+        private void Form1_FormClosing(Object sender, FormClosingEventArgs e)
+        {
+            // Display a MsgBox asking the user to save changes or abort.
+            if(MessageBox.Show("Do you want to save changes to your text?", "My Application",
+                   MessageBoxButtons.YesNo) ==  DialogResult.Yes)
+            {
+                _src?.Cancel();
+                _images.Reset();
+                e.Cancel = true;
+                
             }
         }
     }
