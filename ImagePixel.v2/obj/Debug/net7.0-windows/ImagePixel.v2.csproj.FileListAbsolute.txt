@@ -1,7 +1,0 @@
-C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Debug\net7.0-windows\ImagePixel.v2.csproj.AssemblyReference.cache
-C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Debug\net7.0-windows\ImagePixel.Form1.resources
-C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Debug\net7.0-windows\ImagePixel.v2.csproj.GenerateResource.cache
-C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Debug\net7.0-windows\ImagePixel.v2.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Debug\net7.0-windows\ImagePixel.v2.AssemblyInfoInputs.cache
-C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Debug\net7.0-windows\ImagePixel.v2.AssemblyInfo.cs
-C:\Users\Musatov\source\repos\ImagePixel.v2\ImagePixel.v2\obj\Debug\net7.0-windows\ImagePixel.v2.csproj.CoreCompileInputs.cache
